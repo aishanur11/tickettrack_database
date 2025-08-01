@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buyer Engagement Overview | TicketTrack</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/slate/bootstrap.min.css" />
+  <style>
+    body { background-color: #1b1f23; }
+    .container h2 { color: #ffffff; }
+    .card { background-color: #2a2e32; border: none; padding: 1.5rem; }
+    .engagement-results { margin-top: 2rem; color: #ccc; }
+  </style>
+</head>
+<body>
+
+   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">🎟 TicketTrack</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="buyer-engagement.html">Buyer Engagement</a></li>
+          <li class="nav-item"><a class="nav-link" href="multi-event-buyers.html">Multiple Event Buyers</a></li>
+          <li class="nav-item"><a class="nav-link" href="top-ticket-buyers.html">Top Buyers</a></li>
+          <li class="nav-item"><a class="nav-link" href="popular-events.html">Popular Events</a></li>
+          <li class="nav-item"><a class="nav-link" href="event-no-engagement.html">No Engagement</a></li>
+          <li class="nav-item"><a class="nav-link" href="transfer-ticket.html">Transfer Tickets</a></li>
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-4">Buyer Engagement Overview</h2>
+
+    <div class="card">
+      <label for="buyerDropdown" class="form-label">Select a Buyer:</label>
+      <select id="buyerDropdown" class="form-control mb-3">
+        <option value="">-- View All Buyers --</option>
+      </select>
+
+      <button id="fetchDataBtn" class="btn btn-outline-info">Fetch Engagements</button>
+      <div id="results" class="engagement-results"></div>
+    </div>
+  </main>
+
+  <footer class="text-center text-muted py-3">
+    TicketTrack | Group 12 – TCSS445 © 2025
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const dropdown = document.getElementById('buyerDropdown');
+      const results = document.getElementById('results');
+
+      // Load all buyer emails into dropdown
+      try {
+        const res = await fetch('/buyer-engagement/buyers');
+        const buyers = await res.json();
+        buyers.forEach(b => {
+          const option = document.createElement('option');
+          option.value = b.email;
+          option.textContent = `${b.first_name} ${b.last_name} (${b.email})`;
+          dropdown.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load buyer list.', error);
+      }
+
+      document.getElementById('fetchDataBtn').addEventListener('click', async () => {
+        const email = dropdown.value;
+        const res = await fetch(`/buyer-engagement${email ? '?email=' + encodeURIComponent(email) : ''}`);
+        const data = await res.json();
+
+        if (data.error) {
+          results.innerHTML = `<p class="text-danger">${data.error}</p>`;
+          return;
+        }
+
+        if (data.length === 0) {
+          results.innerHTML = `<p>No engagement records found.</p>`;
+          return;
+        }
+
+        let html = `
+          <h4 class="mt-4">Engagement Results</h4>
+          <table class="table table-bordered table-dark mt-3">
+            <thead>
+              <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Event Name</th>
+                <th>Engagement Type</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        data.forEach(row => {
+          html += `
+            <tr>
+              <td>${row.first_name}</td>
+              <td>${row.last_name}</td>
+              <td>${row.event_name}</td>
+              <td>${row.engagement_type_name}</td>
+            </tr>
+          `;
+        });
+
+        html += '</tbody></table>';
+        results.innerHTML = html;
+      });
+    });
+  </script>
+
+</body>
+</html>

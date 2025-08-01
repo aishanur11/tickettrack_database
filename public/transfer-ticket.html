@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transfer Tickets | TicketTrack</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/slate/bootstrap.min.css" />
+  <style>
+    body { background-color: #1b1f23; }
+    .container h2 { color: #fff; }
+    .card { background-color: #2a2e32; border: none; padding: 1.5rem; }
+    label, select { color: #ccc; }
+  </style>
+</head>
+<body>
+
+   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">🎟 TicketTrack</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="buyer-engagement.html">Buyer Engagement</a></li>
+          <li class="nav-item"><a class="nav-link" href="multi-event-buyers.html">Multiple Event Buyers</a></li>
+          <li class="nav-item"><a class="nav-link" href="top-ticket-buyers.html">Top Buyers</a></li>
+          <li class="nav-item"><a class="nav-link" href="popular-events.html">Popular Events</a></li>
+          <li class="nav-item"><a class="nav-link" href="event-no-engagement.html">No Engagement</a></li>
+          <li class="nav-item"><a class="nav-link" href="transfer-ticket.html">Transfer Tickets</a></li>
+          
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-4">Transfer Tickets</h2>
+    <div class="card">
+      <form id="transferForm">
+        <div class="mb-3">
+          <label for="fromBuyer">From Buyer:</label>
+          <select id="fromBuyer" class="form-control" required>
+            <option value="">-- Select Buyer --</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="toBuyer">To Buyer:</label>
+          <select id="toBuyer" class="form-control" required>
+            <option value="">-- Select Buyer --</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="ticketId">Ticket:</label>
+          <select id="ticketId" class="form-control" required>
+            <option value="">-- Select Ticket --</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-outline-success">Transfer</button>
+      </form>
+      <div id="resultMsg" class="mt-4"></div>
+    </div>
+  </main>
+
+  <footer class="text-center text-muted py-3">TicketTrack | Group 12 – TCSS445 © 2025</footer>
+
+  <script>
+    async function populateDropdowns() {
+      try {
+        // Load buyers
+        const buyerRes = await fetch('/buyer-engagement/buyers');
+        const buyers = await buyerRes.json();
+
+        const fromSelect = document.getElementById('fromBuyer');
+        const toSelect = document.getElementById('toBuyer');
+
+        buyers.forEach(b => {
+          const option = `<option value="${b.buyer_id}">${b.first_name} ${b.last_name} (${b.email})</option>`;
+          fromSelect.innerHTML += option;
+          toSelect.innerHTML += option;
+        });
+
+        // Load tickets
+        const ticketRes = await fetch('/transfer-tickets/tickets');
+        const tickets = await ticketRes.json();
+
+        const ticketSelect = document.getElementById('ticketId');
+        tickets.forEach(t => {
+          ticketSelect.innerHTML += `<option value="${t.ticket_id}">Ticket #${t.ticket_id} (${t.event_name})</option>`;
+        });
+
+      } catch (err) {
+        document.getElementById('resultMsg').innerHTML = `<p class="text-danger">Error loading data.</p>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', populateDropdowns);
+
+    document.getElementById("transferForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const data = {
+        fromBuyer: document.getElementById("fromBuyer").value,
+        toBuyer: document.getElementById("toBuyer").value,
+        ticketId: document.getElementById("ticketId").value,
+      };
+
+      fetch("/transfer-tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(response => {
+        document.getElementById("resultMsg").innerHTML = `<p class='text-success'>${response.message}</p>`;
+      })
+      .catch(() => {
+        document.getElementById("resultMsg").innerHTML = "<p class='text-danger'>Transfer failed.</p>";
+      });
+    });
+  </script>
+
+</body>
+</html>

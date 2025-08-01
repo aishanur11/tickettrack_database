@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add New Buyer | TicketTrack</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/slate/bootstrap.min.css" />
+  <style>
+    body { background-color: #1b1f23; }
+    .container h2 { color: #fff; }
+    .card { background-color: #2a2e32; border: none; padding: 1.5rem; }
+    label, input, select { color: #ccc; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">🎟 TicketTrack</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="buyer-engagement.html">Buyer Engagement</a></li>
+          <li class="nav-item"><a class="nav-link" href="multi-event-buyers.html">Multiple Event Buyers</a></li>
+          <li class="nav-item"><a class="nav-link" href="top-ticket-buyers.html">Top Buyers</a></li>
+          <li class="nav-item"><a class="nav-link" href="popular-events.html">Popular Events</a></li>
+          <li class="nav-item"><a class="nav-link" href="event-no-engagement.html">No Engagement</a></li>
+          <li class="nav-item"><a class="nav-link" href="transfer-ticket.html">Transfer Tickets</a></li>
+          <li class="nav-item"><a class="nav-link" href="add-buyer.html">Add Buyer</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-4">Add New Buyer</h2>
+    <div class="card">
+      <form id="buyerForm">
+        <div class="mb-3">
+          <label for="firstName">First Name:</label>
+          <input type="text" id="firstName" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="lastName">Last Name:</label>
+          <input type="text" id="lastName" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="email">Email:</label>
+          <input type="email" id="email" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="phone">Phone:</label>
+          <input type="text" id="phone" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-outline-success">Add Buyer</button>
+      </form>
+      <div id="resultMsg" class="mt-4"></div>
+    </div>
+  </main>
+
+  <footer class="text-center text-muted py-3">TicketTrack | Group 12 – TCSS445 © 2025</footer>
+
+  <script>
+    document.getElementById("buyerForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const data = {
+        first_name: document.getElementById("firstName").value,
+        last_name: document.getElementById("lastName").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value
+      };
+
+      fetch("/add-buyer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(response => {
+        if (response.success) {
+          document.getElementById("resultMsg").innerHTML = `<p class='text-success'>${response.message}</p>`;
+          document.getElementById("buyerForm").reset();
+        } else {
+          document.getElementById("resultMsg").innerHTML = `<p class='text-danger'>${response.message}</p>`;
+        }
+      })
+      .catch(() => {
+        document.getElementById("resultMsg").innerHTML = "<p class='text-danger'>Error adding buyer.</p>";
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Top Ticket Buyers | TicketTrack</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/slate/bootstrap.min.css" />
+  <style>
+    body { background-color: #1b1f23; }
+    .container h2 { color: #fff; }
+    .card { background-color: #2a2e32; border: none; padding: 1.5rem; }
+    .table { color: #ddd; background-color: #2c2f33; }
+    .table thead { background-color: #3a3f44; }
+  </style>
+</head>
+<body>
+
+   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">🎟 TicketTrack</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="buyer-engagement.html">Buyer Engagement</a></li>
+          <li class="nav-item"><a class="nav-link" href="multi-event-buyers.html">Multiple Event Buyers</a></li>
+          <li class="nav-item"><a class="nav-link" href="top-ticket-buyers.html">Top Buyers</a></li>
+          <li class="nav-item"><a class="nav-link" href="popular-events.html">Popular Events</a></li>
+          <li class="nav-item"><a class="nav-link" href="event-no-engagement.html">No Engagement</a></li>
+          <li class="nav-item"><a class="nav-link" href="transfer-ticket.html">Transfer Tickets</a></li>
+          
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <h2 class="mb-4">Top Ticket Buyers</h2>
+    <div class="card">
+      <label for="buyerDropdown" class="form-label">Select Buyer (optional):</label>
+      <select id="buyerDropdown" class="form-control mb-3">
+        <option value="">-- Show All Top Buyers --</option>
+      </select>
+
+      <button id="fetchTopBtn" class="btn btn-outline-info">Fetch Top Buyers</button>
+      <div id="results" class="mt-4"></div>
+    </div>
+  </main>
+
+  <footer class="text-center text-muted py-3">TicketTrack | Group 12 – TCSS445 © 2025</footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const dropdown = document.getElementById("buyerDropdown");
+      const results = document.getElementById("results");
+
+      // Load buyer options
+      try {
+        const res = await fetch('/top-ticket-buyers/all');
+        const buyers = await res.json();
+        buyers.forEach(b => {
+          const option = document.createElement('option');
+          option.value = b.email;
+          option.textContent = `${b.first_name} ${b.last_name} (${b.email})`;
+          dropdown.appendChild(option);
+        });
+      } catch (err) {
+        console.error('Dropdown load error:', err);
+      }
+
+      // Fetch data on button click
+      document.getElementById("fetchTopBtn").addEventListener("click", async () => {
+        const email = dropdown.value;
+        try {
+          const res = await fetch(`/top-ticket-buyers${email ? '?email=' + encodeURIComponent(email) : ''}`);
+          const data = await res.json();
+
+          if (data.error) {
+            results.innerHTML = `<p class="text-danger">${data.error}</p>`;
+            return;
+          }
+
+          if (data.length === 0) {
+            results.innerHTML = `<p>No top buyers found for this selection.</p>`;
+            return;
+          }
+
+          let output = `
+            <table class="table table-bordered mt-3">
+              <thead>
+                <tr><th>Name</th><th>Email</th><th>Total Tickets</th><th>Events Attended</th></tr>
+              </thead><tbody>`;
+          data.forEach(b => {
+            output += `<tr><td>${b.first_name} ${b.last_name}</td><td>${b.email}</td><td>${b.number_of_tickets}</td><td>${b.events_attended}</td></tr>`;
+          });
+          output += "</tbody></table>";
+          results.innerHTML = output;
+        } catch (err) {
+          console.error(err);
+          results.innerHTML = `<p class="text-danger">Failed to fetch buyer data.</p>`;
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
